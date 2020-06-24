@@ -131,6 +131,12 @@ private:
 		}
 	};
 
+	// boid stuff
+	float boid_detection_range;
+	float boid_repulsion_force;
+	float boid_clumping;
+	float boid_aligning;
+
 	//
 
 	bool one_shot;
@@ -196,6 +202,12 @@ protected:
 	virtual void _validate_property(PropertyInfo &property) const;
 
 public:
+
+	void set_boid_detection_range(float p_boid_detection_range);
+	void set_boid_repulsion_force(float p_boid_repulsion_force);
+	void set_boid_clumping(float p_boid_clumping);
+	void set_boid_aligning(float p_boid_aligning);
+
 	void set_emitting(bool p_emitting);
 	void set_amount(int p_amount);
 	void set_lifetime(float p_lifetime);
@@ -207,6 +219,11 @@ public:
 	void set_visibility_aabb(const Rect2 &p_aabb);
 	void set_use_local_coordinates(bool p_enable);
 	void set_speed_scale(float p_scale);
+
+	float get_boid_detection_range() const;
+	float get_boid_repulsion_force() const;
+	float get_boid_clumping() const;
+	float get_boid_aligning() const;
 
 	bool is_emitting() const;
 	int get_amount() const;

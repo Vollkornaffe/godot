@@ -66,6 +66,24 @@ void BoidParticles::set_amount(int p_amount) {
 
 	particle_order.resize(p_amount);
 }
+
+void BoidParticles::set_boid_detection_range(float p_boid_detection_range) {
+	ERR_FAIL_COND_MSG(p_boid_detection_range < 0.0, "Particles boid_detection_range must be greater or equal than 0.");
+	boid_detection_range = p_boid_detection_range;
+}
+void BoidParticles::set_boid_repulsion_force(float p_boid_repulsion_force) {
+	ERR_FAIL_COND_MSG(p_boid_repulsion_force < 0.0, "Particles boid_detection_range must be greater or equal than 0.");
+	boid_repulsion_force = p_boid_repulsion_force;
+}
+void BoidParticles::set_boid_clumping(float p_boid_clumping) {
+	ERR_FAIL_COND_MSG(p_boid_clumping < 0.0, "Particles boid_clumping must be greater or equal than 0.");
+	boid_clumping = p_boid_clumping;
+}
+void BoidParticles::set_boid_aligning(float p_boid_aligning) {
+	ERR_FAIL_COND_MSG(p_boid_aligning < 0.0, "Particles boid_aligning must be greater or equal than 0.");
+	boid_aligning = p_boid_aligning;
+}
+
 void BoidParticles::set_lifetime(float p_lifetime) {
 
 	ERR_FAIL_COND_MSG(p_lifetime <= 0, "Particles lifetime must be greater than 0.");
@@ -104,6 +122,21 @@ void BoidParticles::set_speed_scale(float p_scale) {
 	speed_scale = p_scale;
 }
 
+float BoidParticles::get_boid_detection_range() const {
+	return boid_detection_range;
+}
+
+float BoidParticles::get_boid_repulsion_force() const {
+	return boid_repulsion_force;
+}
+float BoidParticles::get_boid_clumping() const {
+	return boid_clumping;
+}
+
+float BoidParticles::get_boid_aligning() const {
+	return boid_aligning;
+}
+
 bool BoidParticles::is_emitting() const {
 
 	return emitting;
@@ -112,6 +145,7 @@ int BoidParticles::get_amount() const {
 
 	return particles.size();
 }
+
 float BoidParticles::get_lifetime() const {
 
 	return lifetime;
@@ -866,6 +900,41 @@ void BoidParticles::_particles_process(float p_delta) {
 			Vector2 force = gravity;
 			Vector2 pos = p.transform[2];
 
+			auto average_position =	Vector2();
+			auto average_velocity = Vector2();
+			auto norm_factor = 0.0;
+
+			for (int j = 0; j < pcount; j++) {
+
+				Particle &other_p = parray[j];
+
+				if (!other_p.active)
+					continue;
+
+				auto other_pos = other_p.transform[2];
+
+				auto dir = pos - other_pos;
+				auto diff = dir.length();
+
+				if (diff < boid_detection_range) {
+
+					auto inv_diff = 1.0 - diff / boid_detection_range;
+					auto repulsion_factor = inv_diff * inv_diff * boid_repulsion_force;
+
+					average_position += other_pos;
+					average_velocity += other_p.velocity;
+					norm_factor += 1.0;
+
+					force += local_delta * repulsion_factor * dir;
+
+				}
+			}
+
+			average_position /= norm_factor;
+			average_velocity /= norm_factor;
+			force += local_delta * boid_clumping * (average_position - pos);
+			force += boid_aligning * (average_velocity - p.velocity);
+
 			//apply linear acceleration
 			force += p.velocity.length() > 0.0 ? p.velocity.normalized() * (parameters[PARAM_LINEAR_ACCEL] + tex_linear_accel) * Math::lerp(1.0f, rand_from_seed(alt_seed), randomness[PARAM_LINEAR_ACCEL]) : Vector2();
 			//apply radial acceleration
@@ -1245,6 +1314,10 @@ void BoidParticles::convert_from_particles(Node *p_particles) {
 
 void BoidParticles::_bind_methods() {
 
+	ClassDB::bind_method(D_METHOD("set_boid_detection_range", "value"), &BoidParticles::set_boid_detection_range);
+	ClassDB::bind_method(D_METHOD("set_boid_repulsion_force", "value"), &BoidParticles::set_boid_repulsion_force);
+	ClassDB::bind_method(D_METHOD("set_boid_clumping", "value"), &BoidParticles::set_boid_clumping);
+	ClassDB::bind_method(D_METHOD("set_boid_aligning", "value"), &BoidParticles::set_boid_aligning);
 	ClassDB::bind_method(D_METHOD("set_emitting", "emitting"), &BoidParticles::set_emitting);
 	ClassDB::bind_method(D_METHOD("set_amount", "amount"), &BoidParticles::set_amount);
 	ClassDB::bind_method(D_METHOD("set_lifetime", "secs"), &BoidParticles::set_lifetime);
@@ -1258,6 +1331,10 @@ void BoidParticles::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_fractional_delta", "enable"), &BoidParticles::set_fractional_delta);
 	ClassDB::bind_method(D_METHOD("set_speed_scale", "scale"), &BoidParticles::set_speed_scale);
 
+	ClassDB::bind_method(D_METHOD("get_boid_detection_range"), &BoidParticles::get_boid_detection_range);
+	ClassDB::bind_method(D_METHOD("get_boid_repulsion_force"), &BoidParticles::get_boid_repulsion_force);
+	ClassDB::bind_method(D_METHOD("get_boid_clumping"), &BoidParticles::get_boid_clumping);
+	ClassDB::bind_method(D_METHOD("get_boid_aligning"), &BoidParticles::get_boid_aligning);
 	ClassDB::bind_method(D_METHOD("is_emitting"), &BoidParticles::is_emitting);
 	ClassDB::bind_method(D_METHOD("get_amount"), &BoidParticles::get_amount);
 	ClassDB::bind_method(D_METHOD("get_lifetime"), &BoidParticles::get_lifetime);
@@ -1285,6 +1362,12 @@ void BoidParticles::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "emitting"), "set_emitting", "is_emitting");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "amount", PROPERTY_HINT_EXP_RANGE, "1,1000000,1"), "set_amount", "get_amount");
+	ADD_GROUP("Boid", "boid_");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "detection_range"), "set_boid_detection_range", "get_boid_detection_range");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "repulsion_force"), "set_boid_repulsion_force", "get_boid_repulsion_force");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "clumping"), "set_boid_clumping", "get_boid_clumping");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "aligning"), "set_boid_aligning", "get_boid_aligning");
+
 	ADD_GROUP("Time", "");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "lifetime", PROPERTY_HINT_RANGE, "0.01,600.0,0.01,or_greater"), "set_lifetime", "get_lifetime");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "one_shot"), "set_one_shot", "get_one_shot");
@@ -1462,6 +1545,10 @@ BoidParticles::BoidParticles() {
 	multimesh = VisualServer::get_singleton()->multimesh_create();
 	VisualServer::get_singleton()->multimesh_set_mesh(multimesh, mesh);
 
+	set_boid_detection_range(10.0);
+	set_boid_repulsion_force(1.0);
+	set_boid_clumping(1.0);
+	set_boid_aligning(1.0);
 	set_emitting(true);
 	set_one_shot(false);
 	set_amount(8);
