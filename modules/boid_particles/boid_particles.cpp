@@ -34,6 +34,7 @@
 #include "scene/2d/particles_2d.h"
 #include "scene/resources/particles_material.h"
 #include "servers/visual_server.h"
+#include "util.h"
 
 void BoidParticles::set_emitting(bool p_emitting) {
 
@@ -951,8 +952,8 @@ void BoidParticles::_particles_process(float p_delta) {
 		if (flags[FLAG_ALIGN_Y_TO_VELOCITY]) {
 			if (p.velocity.length() > 0.0) {
 
-				p.transform.elements[1] = p.velocity.normalized();
-				p.transform.elements[0] = p.transform.elements[1].tangent();
+				p.transform.elements[0] = p.velocity.normalized();
+				p.transform.elements[1] = p.transform.elements[0].tangent();
 			}
 
 		} else {
@@ -968,6 +969,16 @@ void BoidParticles::_particles_process(float p_delta) {
 		p.transform.elements[1] *= base_scale;
 
 		p.transform[2] += p.velocity * local_delta;
+
+		// some clamping with velocity corection afterwards
+
+		auto position = p.transform[2];
+
+		auto clamped_position = clamp(position, get_viewport_rect().position, get_viewport_rect().size);
+
+		p.velocity += 2.0 * (clamped_position - position) / local_delta;
+		p.transform[2] = clamped_position;
+
 	}
 }
 
