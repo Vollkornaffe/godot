@@ -55,11 +55,13 @@ void BoidParticles::set_amount(int p_amount) {
 	particle_data.resize((8 + 4 + 1) * p_amount);
 	VS::get_singleton()->multimesh_allocate(multimesh, p_amount, VS::MULTIMESH_TRANSFORM_2D, VS::MULTIMESH_COLOR_8BIT, VS::MULTIMESH_CUSTOM_DATA_FLOAT);
 
+	restart();
 }
 
 int BoidParticles::get_amount() const {
 
 	return particles.size();
+
 }
 
 void BoidParticles::_update_mesh_texture() {
@@ -112,6 +114,7 @@ void BoidParticles::_update_mesh_texture() {
 
 	VS::get_singleton()->mesh_clear(mesh);
 	VS::get_singleton()->mesh_add_surface_from_arrays(mesh, VS::PRIMITIVE_TRIANGLES, arr);
+
 }
 
 void BoidParticles::set_texture(const Ref<Texture> &p_texture) {
@@ -128,6 +131,7 @@ void BoidParticles::set_texture(const Ref<Texture> &p_texture) {
 
 	update();
 	_update_mesh_texture();
+
 }
 
 void BoidParticles::_texture_changed() {
@@ -136,22 +140,26 @@ void BoidParticles::_texture_changed() {
 		update();
 		_update_mesh_texture();
 	}
+
 }
 
 Ref<Texture> BoidParticles::get_texture() const {
 
 	return texture;
+
 }
 
 void BoidParticles::set_normalmap(const Ref<Texture> &p_normalmap) {
 
 	normalmap = p_normalmap;
 	update();
+
 }
 
 Ref<Texture> BoidParticles::get_normalmap() const {
 
 	return normalmap;
+
 }
 
 String BoidParticles::get_configuration_warning() const {
@@ -169,6 +177,7 @@ String BoidParticles::get_configuration_warning() const {
 	}
 
 	return warnings;
+
 }
 
 void BoidParticles::restart() {
@@ -180,9 +189,8 @@ void BoidParticles::restart() {
 	Particle *parray = w.ptr();
 	for (int i = 0; i < pcount; i++) {
 		Particle &p = parray[i];
-		p.transform.elements[0] = Vector2(1.0, 0.0);
-		p.transform.elements[1] = Vector2(0.0, 1.0);
-		p.transform[2] = random.rand_within_rect(rect);
+		p.transform = Transform2D();
+		//p.transform[2] = random.rand_within_rect(rect);
 		p.custom[0] = 0.0;
 		p.custom[1] = 0.0;
 		p.custom[2] = 0.0;
@@ -193,6 +201,7 @@ void BoidParticles::restart() {
 		p.base_color = Color(1, 1, 1, 1);
 	}
 
+
 }
 
 void BoidParticles::set_param(Parameter p_param, float p_value) {
@@ -200,12 +209,14 @@ void BoidParticles::set_param(Parameter p_param, float p_value) {
 	ERR_FAIL_INDEX(p_param, PARAM_MAX);
 
 	parameters[p_param] = p_value;
+
 }
 float BoidParticles::get_param(Parameter p_param) const {
 
 	ERR_FAIL_INDEX_V(p_param, PARAM_MAX, 0);
 
 	return parameters[p_param];
+
 }
 
 void BoidParticles::set_param_randomness(Parameter p_param, float p_value) {
@@ -213,32 +224,38 @@ void BoidParticles::set_param_randomness(Parameter p_param, float p_value) {
 	ERR_FAIL_INDEX(p_param, PARAM_MAX);
 
 	randomness[p_param] = p_value;
+
 }
 float BoidParticles::get_param_randomness(Parameter p_param) const {
 
 	ERR_FAIL_INDEX_V(p_param, PARAM_MAX, 0);
 
 	return randomness[p_param];
+
 }
 
 void BoidParticles::set_color(const Color &p_color) {
 
 	color = p_color;
+
 }
 
 Color BoidParticles::get_color() const {
 
 	return color;
+
 }
 
 void BoidParticles::set_particle_flag(Flags p_flag, bool p_enable) {
 	ERR_FAIL_INDEX(p_flag, FLAG_MAX);
 	flags[p_flag] = p_enable;
+
 }
 
 bool BoidParticles::get_particle_flag(Flags p_flag) const {
 	ERR_FAIL_INDEX_V(p_flag, FLAG_MAX, false);
 	return flags[p_flag];
+
 }
 
 static uint32_t idhash(uint32_t x) {
@@ -247,6 +264,7 @@ static uint32_t idhash(uint32_t x) {
 	x = ((x >> uint32_t(16)) ^ x) * uint32_t(0x45d9f3b);
 	x = (x >> uint32_t(16)) ^ x;
 	return x;
+
 }
 
 static float rand_from_seed(uint32_t &seed) {
@@ -260,11 +278,21 @@ static float rand_from_seed(uint32_t &seed) {
 		s += 2147483647;
 	seed = uint32_t(s);
 	return float(seed % uint32_t(65536)) / 65535.0;
+
 }
 
-void BoidParticles::_physics_process(float delta) {
-	_particles_process(delta);
+void BoidParticles::_update_internal() {
+
+	if (particles.size() == 0 || !is_visible_in_tree()) {
+		_set_redraw(false);
+		return;
+	}
+	_set_redraw(true);
+
+	_particles_process(0.001);
+
 	_update_particle_data_buffer();
+
 }
 
 void BoidParticles::_particles_process(float p_delta) {
@@ -358,6 +386,7 @@ void BoidParticles::_particles_process(float p_delta) {
 		p.transform[2] = clamped_position;
 
 	}
+
 }
 
 void BoidParticles::_update_particle_data_buffer() {
@@ -411,6 +440,7 @@ void BoidParticles::_update_particle_data_buffer() {
 #ifndef NO_THREADS
 	update_mutex->unlock();
 #endif
+
 }
 
 void BoidParticles::_set_redraw(bool p_redraw) {
@@ -437,6 +467,7 @@ void BoidParticles::_set_redraw(bool p_redraw) {
 	update_mutex->unlock();
 #endif
 	update(); // redraw to update render list
+
 }
 
 void BoidParticles::_update_render_thread() {
@@ -450,22 +481,22 @@ void BoidParticles::_update_render_thread() {
 #ifndef NO_THREADS
 	update_mutex->unlock();
 #endif
+
 }
 
 void BoidParticles::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_ENTER_TREE) {
-		_set_redraw(true);
+		set_process_internal(true);
+		restart();
 	}
 
 	if (p_what == NOTIFICATION_EXIT_TREE) {
 		_set_redraw(false);
 	}
 
-	if (p_what == NOTIFICATION_PHYSICS_PROCESS) {
-
-		std::cout << "todo call physics" << std::endl;
-
+	if (p_what == NOTIFICATION_INTERNAL_PROCESS) {
+		_update_internal();
 	}
 
 	if (p_what == NOTIFICATION_DRAW) {
@@ -485,6 +516,7 @@ void BoidParticles::_notification(int p_what) {
 
 		VS::get_singleton()->canvas_item_add_multimesh(get_canvas_item(), multimesh, texrid, normrid);
 	}
+
 }
 
 void BoidParticles::_bind_methods() {
@@ -522,7 +554,6 @@ void BoidParticles::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_particle_flag", "flag"), &BoidParticles::get_particle_flag);
 
 	ClassDB::bind_method(D_METHOD("_update_render_thread"), &BoidParticles::_update_render_thread);
-	ClassDB::bind_method(D_METHOD("_physics_process"), &BoidParticles::_physics_process);
 	ClassDB::bind_method(D_METHOD("_texture_changed"), &BoidParticles::_texture_changed);
 
 	auto pn = parameter_names();
@@ -546,6 +577,7 @@ void BoidParticles::_bind_methods() {
 
 	ADD_GROUP("Color", "");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "color"), "set_color", "get_color");
+
 
 }
 
@@ -577,6 +609,7 @@ BoidParticles::BoidParticles() {
 #endif
 
 	_update_mesh_texture();
+
 }
 
 BoidParticles::~BoidParticles() {
@@ -586,4 +619,5 @@ BoidParticles::~BoidParticles() {
 #ifndef NO_THREADS
 	memdelete(update_mutex);
 #endif
+
 }

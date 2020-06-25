@@ -117,7 +117,7 @@ private:
 
 	bool flags[FLAG_MAX];
 
-	void _physics_process(float p_delta);
+	void _update_internal();
 	void _particles_process(float p_delta);
 	void _update_particle_data_buffer();
 
