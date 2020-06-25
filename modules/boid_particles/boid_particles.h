@@ -35,9 +35,14 @@
 #include "scene/2d/node_2d.h"
 #include "scene/resources/texture.h"
 
+#include "particle.h"
+#include "boid_system.h"
+
 class BoidParticles : public Node2D {
 private:
 	GDCLASS(BoidParticles, Node2D);
+
+	BoidSystem boid_system;
 
 public:
 	enum DrawOrder {
@@ -46,6 +51,12 @@ public:
 	};
 
 	enum Parameter {
+
+		PARAM_BOID_DETECTION_RANGE,
+		PARAM_BOID_DETECTION_ANGLE,
+		PARAM_BOID_AVOIDING,
+		PARAM_BOID_ALIGNING,
+		PARAM_BOID_CLUMPING,
 
 		PARAM_INITIAL_LINEAR_VELOCITY,
 		PARAM_ANGULAR_VELOCITY,
@@ -80,26 +91,6 @@ public:
 
 private:
 	bool emitting;
-
-	// warning - beware of adding non-trivial types
-	// to this structure as it is zeroed to initialize in set_amount()
-	struct Particle {
-		Transform2D transform;
-		Color color;
-		float custom[4];
-		float rotation;
-		Vector2 velocity;
-		bool active;
-		float angle_rand;
-		float scale_rand;
-		float hue_rot_rand;
-		float anim_offset_rand;
-		float time;
-		float lifetime;
-		Color base_color;
-
-		uint32_t seed;
-	};
 
 	float time;
 	float inactive_time;

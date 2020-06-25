@@ -631,6 +631,13 @@ void BoidParticles::_particles_process(float p_delta) {
 
 	p_delta *= speed_scale;
 
+	boid_system.detection_range = parameters[PARAM_BOID_DETECTION_RANGE];
+	boid_system.detection_angle = parameters[PARAM_BOID_DETECTION_ANGLE];
+	boid_system.avoiding = parameters[PARAM_BOID_AVOIDING];
+	boid_system.aligning = parameters[PARAM_BOID_ALIGNING];
+	boid_system.clumping = parameters[PARAM_BOID_CLUMPING];
+	boid_system.update_particles(particles, p_delta);
+
 	int pcount = particles.size();
 	PoolVector<Particle>::Write w = particles.write();
 
@@ -1360,6 +1367,14 @@ void BoidParticles::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "spread", PROPERTY_HINT_RANGE, "0,180,0.01"), "set_spread", "get_spread");
 	ADD_GROUP("Gravity", "");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "gravity"), "set_gravity", "get_gravity");
+
+	ADD_GROUP("Boid System", "boid_");
+	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "detection_range"), "set_param", "get_param", PARAM_BOID_DETECTION_RANGE);
+	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "detection_angle"), "set_param", "get_param", PARAM_BOID_DETECTION_ANGLE);
+	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "avoiding"), "set_param", "get_param", PARAM_BOID_AVOIDING);
+	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "aligning"), "set_param", "get_param", PARAM_BOID_ALIGNING);
+	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "clumping"), "set_param", "get_param", PARAM_BOID_CLUMPING);
+
 	ADD_GROUP("Initial Velocity", "initial_");
 	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "initial_velocity", PROPERTY_HINT_RANGE, "0,1000,0.01,or_greater"), "set_param", "get_param", PARAM_INITIAL_LINEAR_VELOCITY);
 	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "initial_velocity_random", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_param_randomness", "get_param_randomness", PARAM_INITIAL_LINEAR_VELOCITY);
@@ -1410,6 +1425,12 @@ void BoidParticles::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "anim_offset", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_param", "get_param", PARAM_ANIM_OFFSET);
 	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "anim_offset_random", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_param_randomness", "get_param_randomness", PARAM_ANIM_OFFSET);
 	ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "anim_offset_curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve"), "set_param_curve", "get_param_curve", PARAM_ANIM_OFFSET);
+
+	BIND_ENUM_CONSTANT(PARAM_BOID_DETECTION_RANGE);
+	BIND_ENUM_CONSTANT(PARAM_BOID_DETECTION_ANGLE);
+	BIND_ENUM_CONSTANT(PARAM_BOID_AVOIDING);
+	BIND_ENUM_CONSTANT(PARAM_BOID_ALIGNING);
+	BIND_ENUM_CONSTANT(PARAM_BOID_CLUMPING);
 
 	BIND_ENUM_CONSTANT(PARAM_INITIAL_LINEAR_VELOCITY);
 	BIND_ENUM_CONSTANT(PARAM_ANGULAR_VELOCITY);
