@@ -1,6 +1,8 @@
 #pragma once
 
 #include "core/math/vector2.h"
+#include "core/math/random_number_generator.h"
+#include "core/math/rect2.h"
 
 inline Vector2 clamp(Vector2 const& x, Vector2 const& min, Vector2 const& max) {
 
@@ -10,3 +12,21 @@ inline Vector2 clamp(Vector2 const& x, Vector2 const& min, Vector2 const& max) {
     );
 
 }
+
+struct RandomCustom : public RandomNumberGenerator {
+
+    inline Vector2 rand_within_rect(Rect2 const& rect) {
+
+        auto min = rect.position;
+        auto max = min + rect.size;
+
+        return Vector2(
+
+            randf_range(min.x, max.x),
+            randf_range(min.y, max.y)
+
+        );
+
+    }
+
+};
