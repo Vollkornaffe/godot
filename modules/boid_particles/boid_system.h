@@ -56,12 +56,17 @@ struct BoidSystem {
                 auto factor_angle = 1.0 - angle / detection_angle / 2.0;
                 
                 auto factor = factor_dist * factor_dist * factor_angle;
+                //auto factor = factor_dist * factor_dist;
 
                 assert(factor >= 0.0);
 
                 position += factor * p_j.transform[2];
                 velocity += factor * p_j.velocity;
                 normalization += factor;
+
+                //position += p_j.transform[2];
+                //velocity += p_j.velocity;
+                //normalization += 1.0;
 
                 // this is the avoidance part
                 p_i.velocity += p_delta * avoiding * factor * dir;
