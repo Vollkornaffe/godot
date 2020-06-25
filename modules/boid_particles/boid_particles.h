@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  cpu_particles_2d.h                                                   */
+/*  boid_particles.h                                                     */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,16 +28,16 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef CPU_PARTICLES_2D_H
-#define CPU_PARTICLES_2D_H
+#ifndef BOID_PARTICLES_H
+#define BOID_PARTICLES_H
 
 #include "core/rid.h"
 #include "scene/2d/node_2d.h"
 #include "scene/resources/texture.h"
 
-class CPUParticles2D : public Node2D {
+class BoidParticles : public Node2D {
 private:
-	GDCLASS(CPUParticles2D, Node2D);
+	GDCLASS(BoidParticles, Node2D);
 
 public:
 	enum DrawOrder {
@@ -289,13 +289,13 @@ public:
 
 	void convert_from_particles(Node *p_particles);
 
-	CPUParticles2D();
-	~CPUParticles2D();
+	BoidParticles();
+	~BoidParticles();
 };
 
-VARIANT_ENUM_CAST(CPUParticles2D::DrawOrder)
-VARIANT_ENUM_CAST(CPUParticles2D::Parameter)
-VARIANT_ENUM_CAST(CPUParticles2D::Flags)
-VARIANT_ENUM_CAST(CPUParticles2D::EmissionShape)
+VARIANT_ENUM_CAST(BoidParticles::DrawOrder)
+VARIANT_ENUM_CAST(BoidParticles::Parameter)
+VARIANT_ENUM_CAST(BoidParticles::Flags)
+VARIANT_ENUM_CAST(BoidParticles::EmissionShape)
 
-#endif // CPU_PARTICLES_2D_H
+#endif // BOID_PARTICLES_H
