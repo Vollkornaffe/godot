@@ -24,6 +24,9 @@ struct BoidSystem {
 
             Particle &p_i = parray[i];
 
+            if (!p_i.active) 
+                continue;
+
             auto position = p_i.transform[2]; // for clumping
             auto velocity = p_i.velocity; // for aligning
             auto normalization = 1.0; // to normalize the above
@@ -34,6 +37,9 @@ struct BoidSystem {
                     continue;
 
                 Particle &p_j = parray[j];
+
+                if (!p_j.active) 
+                    continue;
 
                 // from j to i
                 auto dir = p_i.transform[2] - p_j.transform[2];
