@@ -22,12 +22,17 @@ protected:
 	}
 
 public:
+
+    float boundary;
+
 	void calc_from_poly2d(
         int width,
         int height,
-        float boundary,
+        float _boundary,
         Object *p_object
     ) {
+
+        boundary = _boundary;
 
         Polygon2D * p_poly = Object::cast_to<Polygon2D>(p_object);
         if (p_poly == NULL) {

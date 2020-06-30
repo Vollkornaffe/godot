@@ -4,6 +4,7 @@
 #include "core/reference.h"
 #include "passive_particles.h"
 #include "particle.h"
+#include "sdf.h"
 
 class Boid : public Reference {
     GDCLASS(Boid, Reference);
@@ -62,11 +63,12 @@ public:
 
     void step(
         Object * po_particles,
-        Ref<Texture> sdf_texture,
+        Ref<SDF> p_sdf,
         float delta
     ) {
 
         PassiveParticles * p_particles = Object::cast_to<PassiveParticles>(po_particles);
+
         int n = p_particles->get_amount();
         PoolVector<Particle>::Write w = p_particles->get_particles_write();
         Particle *parray = w.ptr();
@@ -82,15 +84,36 @@ public:
 
             auto &p = parray[i];
 
-            p.velocity -= delta * p.transform[2];
-            p.transform[2] += delta * p.velocity;
+            auto position = p.transform[2];
+            auto velocity = p.velocity;
+            auto sdf_idx = p_sdf->idx(position.x, position.y);
+
+            auto force = Vector2();
+
+            auto sdf_value = p_sdf->values[sdf_idx];
+            auto sdf_gradient = p_sdf->gradients[sdf_idx];
+            if (sdf_value < 0.0) {
+                auto p_delta = abs(sdf_value) * sdf_gradient;
+                position += p_delta;
+                velocity += p_delta / delta / 2.0;
+            } else if (sdf_value < 100.0) { // TODO make this a parameter
+                force += delta * abs(sdf_value) * p_sdf->gradients[sdf_idx];
+            }
+
+            velocity += delta * force;
+            position += delta * p.velocity;
 
             auto vn = p.velocity.length();
 
-            p.transform.elements[1] = -p.velocity / (vn == 0 ? 1.0 : vn);
-            p.transform.elements[0] = p.transform.elements[1].tangent();
+            if (vn > 0.0) {
+                p.transform.elements[1] = -p.velocity / (vn == 0 ? 1.0 : vn);
+                p.transform.elements[0] = p.transform.elements[1].tangent();
+            }
 
             p.custom[2] = fmod(p.time, 1.0/3.0) + 1.0/3.0;
+
+            p.velocity = velocity;
+            p.transform[2] = position;
 
             p.time += vn / 1000.0 * animation_speed;
 
@@ -101,7 +124,6 @@ public:
     }
 
 private:
-
     float t = 0.0;
 
 };
