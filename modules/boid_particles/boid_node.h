@@ -1,19 +1,19 @@
 #ifndef BOID_NODE_H
 #define BOID_NODE_H
 
-#include "core/reference.h"
+#include "scene/2d/node_2d.h"
 #include "passive_particles.h"
 #include "particle.h"
 #include "sdf.h"
 
-class Boid : public Reference {
-    GDCLASS(Boid, Reference);
+class BoidNode : public Node2D {
+    GDCLASS(BoidNode, Node2D);
 
 protected:
     static void _bind_methods() {
 
-        ClassDB::bind_method(D_METHOD("init_particles"), &Boid::init_particles);
-        ClassDB::bind_method(D_METHOD("step"), &Boid::step);
+        ClassDB::bind_method(D_METHOD("init_particles"), &BoidNode::init_particles);
+        ClassDB::bind_method(D_METHOD("step"), &BoidNode::step);
 
     }
 
