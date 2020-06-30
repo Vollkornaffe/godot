@@ -78,9 +78,6 @@ public:
 		EMISSION_SHAPE_MAX
 	};
 
-private:
-	bool emitting;
-
 	// warning - beware of adding non-trivial types
 	// to this structure as it is zeroed to initialize in set_amount()
 	struct Particle {
@@ -100,6 +97,9 @@ private:
 
 		uint32_t seed;
 	};
+
+private:
+	bool emitting;
 
 	float time;
 	float inactive_time;
@@ -288,6 +288,16 @@ public:
 	void restart();
 
 	void convert_from_particles(Node *p_particles);
+
+
+	// These are new, to access & update the particles
+	// from boid_node
+	PoolVector<Particle>::Read get_particles_read() {
+		return particles.read();
+	}
+	PoolVector<Particle>::Write get_particles_write() {
+		return particles.write();
+	}
 
 	PassiveParticles();
 	~PassiveParticles();
