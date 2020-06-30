@@ -17,7 +17,7 @@ protected:
 	static void _bind_methods() {
 		ClassDB::bind_method(
 				D_METHOD(
-						"calc_from_poly2d", "width", "height", "p_poly_2d"),
+						"calc_from_poly2d", "width", "height", "boundary", "p_poly_2d"),
 				&SDFTextureRect::calc_from_poly2d);
 	}
 
@@ -25,6 +25,7 @@ public:
 	void calc_from_poly2d(
         int width,
         int height,
+        float boundary,
         Object *p_object
     ) {
 
@@ -81,13 +82,14 @@ public:
 
                 }
 
-                if (s == 1) {
-                    d = r.length();
-                    r /= d;
-                    p_image->set_pixel(i, j, Color(abs(r.x), abs(r.y), 0.0));
-                } else {
-                    p_image->set_pixel(i, j, Color(0,0,1));
-                }
+                d = r.length();
+                r /= d == 0 ? 1.0 : d;
+                r = (r + Vector2(1,1)) / 2.0;
+                d /= boundary;
+                d = (clamp(d, 0.0, 1.0) * s + 1.0) / 2.0;
+                p_image->set_pixel(
+                    i, j,
+                    Color(r.x, r.y, d));
 			}
 		}
 

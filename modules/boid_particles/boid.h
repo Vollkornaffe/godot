@@ -52,18 +52,21 @@ public:
 			p.transform = Transform2D();
 			p.time = 0;
             p.color = Color(1,1,1,1);
-            p.transform[2][0] = std::cos(i) * random.randf_range(50.0, 100.0);
-            p.transform[2][1] = std::sin(i) * random.randf_range(50.0, 100.0);
+            p.transform[2][0] = random.randf_range(50.0, 100.0);
+            p.transform[2][1] = random.randf_range(50.0, 100.0);
 
 
         }
 
     }
 
-    void step(Object * p_object, float delta) {
+    void step(
+        Object * po_particles,
+        Ref<Texture> sdf_texture,
+        float delta
+    ) {
 
-
-        PassiveParticles * p_particles = Object::cast_to<PassiveParticles>(p_object);
+        PassiveParticles * p_particles = Object::cast_to<PassiveParticles>(po_particles);
         int n = p_particles->get_amount();
         PoolVector<Particle>::Write w = p_particles->get_particles_write();
         Particle *parray = w.ptr();
@@ -71,6 +74,11 @@ public:
         auto animation_speed = p_particles->get_param(PassiveParticles::Parameter::PARAM_ANIM_SPEED);
 
         for (int i = 0; i < n; i++) {
+
+            /* 
+            for (int j = 0; j < n; j++) {
+            }
+            */
 
             auto &p = parray[i];
 
