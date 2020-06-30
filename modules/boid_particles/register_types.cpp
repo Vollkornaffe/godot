@@ -6,6 +6,7 @@
 #include "boid_particles.h"
 #include "sdf_texture_rect.h"
 #include "boid_node.h"
+#include "passive_particles.h"
 
 void register_boid_particles_types() {
     ClassDB::register_class<BoidParticles>();

@@ -3,20 +3,20 @@
 
 #include "scene/2d/node_2d.h"
 
-class BoidNode2D : Node2D {
-    GDCLASS(BoidNode2D, Node2D);
+class BoidNode : public Node2D {
+    GDCLASS(BoidNode, Node2D);
 
 protected:
     static void _bind_methods() {
 
-        //ClassDB::bind_method(D_METHOD());
+        ClassDB::bind_method(D_METHOD("update"), &BoidNode::update);
 
     }
 
 public:
 
     enum Parameter {
-
+        PARAM_MAX,
     };
 
     void update() {
