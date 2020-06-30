@@ -1,17 +1,18 @@
 #ifndef BOID_NODE_H
 #define BOID_NODE_H
 
-#include "scene/2d/node_2d.h"
+#include "core/reference.h"
 #include "passive_particles.h"
 #include "particle.h"
 
-class BoidNode : public Node2D {
-    GDCLASS(BoidNode, Node2D);
+class Boid : public Reference {
+    GDCLASS(Boid, Reference);
 
 protected:
     static void _bind_methods() {
 
-        ClassDB::bind_method(D_METHOD("init_particles"), &BoidNode::init_particles);
+        ClassDB::bind_method(D_METHOD("init_particles"), &Boid::init_particles);
+        ClassDB::bind_method(D_METHOD("step"), &Boid::step);
 
     }
 
@@ -67,6 +68,29 @@ public:
         }
 
     }
+
+    void step(Object * p_object, float delta) {
+
+        PassiveParticles * p_particles = Object::cast_to<PassiveParticles>(p_object);
+        int n = p_particles->get_amount();
+        PoolVector<Particle>::Write w = p_particles->get_particles_write();
+        Particle *parray = w.ptr();
+        for (int i = 0; i < n; i++) {
+
+            auto &p = parray[i];
+
+            p.transform[2][0] = std::cos(i + t) * 100.0;
+            p.transform[2][1] = std::sin(i + t) * 100.0;
+
+        }
+
+        t += delta;
+
+    }
+
+private:
+
+    float t = 0.0;
 
 };
 
