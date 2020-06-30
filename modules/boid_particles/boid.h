@@ -24,6 +24,8 @@ public:
 
     void init_particles(Object * p_object) {
 
+        RandomCustom random;
+
         PassiveParticles * p_particles = Object::cast_to<PassiveParticles>(p_object);
         if (p_particles == NULL) {
             std::cout << "Cast to PassiveParticles failed!" << std::endl;
@@ -50,7 +52,9 @@ public:
 			p.transform = Transform2D();
 			p.time = 0;
             p.color = Color(1,1,1,1);
-            p.transform[2] = Vector2(i * 100, 0);
+            p.transform[2][0] = std::cos(i) * random.randf_range(50.0, 100.0);
+            p.transform[2][1] = std::sin(i) * random.randf_range(50.0, 100.0);
+
 
         }
 
@@ -58,18 +62,29 @@ public:
 
     void step(Object * p_object, float delta) {
 
+
         PassiveParticles * p_particles = Object::cast_to<PassiveParticles>(p_object);
         int n = p_particles->get_amount();
         PoolVector<Particle>::Write w = p_particles->get_particles_write();
         Particle *parray = w.ptr();
+
+        auto animation_speed = p_particles->get_param(PassiveParticles::Parameter::PARAM_ANIM_SPEED);
+
         for (int i = 0; i < n; i++) {
 
             auto &p = parray[i];
 
-            p.transform[2][0] = std::cos(i + t) * 100.0;
-            p.transform[2][1] = std::sin(i + t) * 100.0;
+            p.velocity -= delta * p.transform[2];
+            p.transform[2] += delta * p.velocity;
 
-            p.custom[2] = fmod(t, 1.0);
+            auto vn = p.velocity.length();
+
+            p.transform.elements[1] = -p.velocity / (vn == 0 ? 1.0 : vn);
+            p.transform.elements[0] = p.transform.elements[1].tangent();
+
+            p.custom[2] = fmod(p.time, 1.0/3.0) + 1.0/3.0;
+
+            p.time += vn / 1000.0 * animation_speed;
 
         }
 
