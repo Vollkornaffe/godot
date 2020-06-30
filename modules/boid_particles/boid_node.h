@@ -58,10 +58,11 @@ public:
 			p.time = 0;
             p.lifetime = 10000.0;
 			p.base_color = Color(1, 1, 1, 1);
+            p.color = Color(1,1,1,1);
 
             p.transform.elements[0] *= 10.0;
             p.transform.elements[1] *= 10.0;
-            p.transform[2] = Vector2(i, 0);
+            p.transform[2] = Vector2(i * 100, 0);
 
         }
 

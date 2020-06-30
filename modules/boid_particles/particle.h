@@ -28,7 +28,7 @@ struct Particle {
 
 public:
 
-    void print() {
+    void print() const {
 
         std::cout << "Transform2D transform; " << transform << std::endl;
         std::cout << "Color color; " << color << std::endl;
