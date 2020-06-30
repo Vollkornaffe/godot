@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  passive_particles.cpp                                                 */
+/*  passive_particles.cpp                                                */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -906,6 +906,9 @@ void PassiveParticles::_particles_process(float p_delta) {
 			p.rotation = Math::deg2rad(base_angle); //angle
 			float animation_phase = (parameters[PARAM_ANIM_OFFSET] + tex_anim_offset) * Math::lerp(1.0f, p.anim_offset_rand, randomness[PARAM_ANIM_OFFSET]) + p.custom[1] * (parameters[PARAM_ANIM_SPEED] + tex_anim_speed) * Math::lerp(1.0f, rand_from_seed(alt_seed), randomness[PARAM_ANIM_SPEED]);
 			p.custom[2] = animation_phase;
+
+			p.print();
+
 		}
 		//apply color
 		//apply hue rotation

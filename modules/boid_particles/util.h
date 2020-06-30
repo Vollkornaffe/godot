@@ -1,9 +1,15 @@
 #pragma once
 
 #include <cassert>
+#include <iostream>
 #include "core/math/vector2.h"
 #include "core/math/random_number_generator.h"
 #include "core/math/rect2.h"
+#include "core/math/transform_2d.h"
+
+std::ostream& operator<<(std::ostream& os, const Vector2& v);
+std::ostream& operator<<(std::ostream& os, const Transform2D& t);
+std::ostream& operator<<(std::ostream& os, const Color& c);
 
 constexpr const real_t& clamp( const real_t& v, const real_t& lo, const real_t& hi )
 {
