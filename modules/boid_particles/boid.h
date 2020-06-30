@@ -42,27 +42,14 @@ public:
 
 			p.seed = Math::rand();
 
-			p.angle_rand = Math::randf();
-			p.scale_rand = Math::randf();
-			p.hue_rot_rand = Math::randf();
-			p.anim_offset_rand = Math::randf();
-
-
             p.velocity = Vector2();
-            p.rotation = 0.0;
-
 			p.custom[0] = 0.0; // unused
 			p.custom[1] = 0.0; // phase [0..1]
 			p.custom[2] = 0.0;
 			p.custom[3] = 0.0;
 			p.transform = Transform2D();
 			p.time = 0;
-            p.lifetime = 10000.0;
-			p.base_color = Color(1, 1, 1, 1);
             p.color = Color(1,1,1,1);
-
-            p.transform.elements[0] *= 10.0;
-            p.transform.elements[1] *= 10.0;
             p.transform[2] = Vector2(i * 100, 0);
 
         }
@@ -81,6 +68,8 @@ public:
 
             p.transform[2][0] = std::cos(i + t) * 100.0;
             p.transform[2][1] = std::sin(i + t) * 100.0;
+
+            p.custom[2] = fmod(t, 1.0);
 
         }
 
