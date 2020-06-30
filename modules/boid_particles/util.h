@@ -1,8 +1,15 @@
 #pragma once
 
+#include <cassert>
 #include "core/math/vector2.h"
 #include "core/math/random_number_generator.h"
 #include "core/math/rect2.h"
+
+constexpr const real_t& clamp( const real_t& v, const real_t& lo, const real_t& hi )
+{
+    assert( !(hi < lo) );
+    return (v < lo) ? lo : (hi < v) ? hi : v;
+}
 
 inline Vector2 clamp(Vector2 const& x, Vector2 const& min, Vector2 const& max) {
 
