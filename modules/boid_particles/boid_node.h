@@ -9,8 +9,6 @@ class BoidNode : public Node2D {
 protected:
     static void _bind_methods() {
 
-        ClassDB::bind_method(D_METHOD("update"), &BoidNode::update);
-
     }
 
 public:
@@ -18,11 +16,6 @@ public:
     enum Parameter {
         PARAM_MAX,
     };
-
-    void update() {
-
-
-    }
 
 };
 
