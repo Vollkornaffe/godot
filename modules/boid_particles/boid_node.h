@@ -151,9 +151,17 @@ public:
                 boid_normalization += factor;
 
                 // this is the avoidance part
-                force -= parameters[PARAM_BOID_AVOIDING] * factor * dir;
+                if (dist < parameters[PARAM_BOID_DETECTION_RANGE] / 2.0) {
+                    force -= parameters[PARAM_BOID_AVOIDING] * factor * dir;
+                }
 
             }
+            boid_position /= boid_normalization;
+            boid_velocity /= boid_normalization;
+
+            // this is the clumping & aligning part
+            force += parameters[PARAM_BOID_CLUMPING] * (boid_position - position);
+            force += parameters[PARAM_BOID_ALIGNING] * (boid_velocity - velocity);
 
             // update with the calculated force
             velocity += delta * force;
