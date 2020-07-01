@@ -119,7 +119,37 @@ public:
                 auto &p_j = parray[j];
                 if (!p_j.active) continue;
 
+                // from i to j
+                auto dir = p_j.transform[2] - position;
+                auto sqr_dist = dir.length_squared();
+                if (sqr_dist > parameters[PARAM_BOID_DETECTION_RANGE]
+                             * parameters[PARAM_BOID_DETECTION_RANGE])
+                    continue; // too far
 
+                // velocity is also the orietation
+                auto angle = p_i.velocity.angle_to(dir);
+
+                if (abs(angle) > parameters[PARAM_BOID_DETECTION_ANGLE] * Math_PI / 180.0 / 2.0) 
+                    continue; // no in view
+
+                // can see, now compute the actual distance
+                auto dist = sqrt(sqr_dist);
+
+                // these go from 1.0 (close / in front) to zero (far / just in sight)
+                auto factor_dist = 1.0 - dist / parameters[PARAM_BOID_DETECTION_RANGE];
+                auto factor_angle = 1.0 - angle / parameters[PARAM_BOID_DETECTION_ANGLE] / 2.0;
+
+                auto factor = factor_dist * factor_dist * factor_angle;
+                //auto factor = factor_dist * factor_dist;
+
+                assert(factor >= 0.0);
+
+                boid_position += factor * p_j.transform[2];
+                boid_velocity += factor * p_j.velocity;
+                boid_normalization += factor;
+
+                // this is the avoidance part
+                force -= parameters[PARAM_BOID_AVOIDING] * factor * dir;
 
             }
 
