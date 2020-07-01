@@ -23,6 +23,8 @@ public:
         PARAM_BOID_ALIGNING,
         PARAM_BOID_CLUMPING,
 
+        PARAM_LINEAR_DRAG,
+
         PARAM_MAX,
     };
 
@@ -111,8 +113,8 @@ public:
             }
 
             // boid forces
-            auto boid_position = p_i.transform[2]; // for clumping
-            auto boid_velocity = p_i.velocity; // for aligning
+            auto boid_position = position; // for clumping
+            auto boid_velocity = velocity; // for aligning
             auto boid_normalization = 1.0; // to normalize the above
             for (int j = 0; j < n; j++) {
 
@@ -127,7 +129,7 @@ public:
                     continue; // too far
 
                 // velocity is also the orietation
-                auto angle = p_i.velocity.angle_to(dir);
+                auto angle = velocity.angle_to(dir);
 
                 if (abs(angle) > parameters[PARAM_BOID_DETECTION_ANGLE] * Math_PI / 180.0 / 2.0) 
                     continue; // no in view
@@ -157,11 +159,15 @@ public:
             velocity += delta * force;
             position += delta * velocity;
 
-            auto vn = velocity.length();
+            // damping
+            velocity -= delta * parameters[PARAM_LINEAR_DRAG] * velocity;
+
+            auto smoothed_velocity = (p_i.velocity + velocity) / 2.0;
+            auto vn = smoothed_velocity.length();
 
             // rotate the sprite to align with move direction
             if (vn > 0.0) {
-                p_i.transform.elements[1] = -velocity / (vn == 0 ? 1.0 : vn);
+                p_i.transform.elements[1] = -smoothed_velocity / (vn == 0 ? 1.0 : vn);
                 p_i.transform.elements[0] = p_i.transform.elements[1].tangent();
             }
 

@@ -24,4 +24,7 @@ void BoidNode::_bind_methods() {
         ADD_PROPERTYI(PropertyInfo(Variant::REAL, "boid_avoiding"), "set_param", "get_param", PARAM_BOID_AVOIDING);
         ADD_PROPERTYI(PropertyInfo(Variant::REAL, "boid_aligning"), "set_param", "get_param", PARAM_BOID_ALIGNING);
         ADD_PROPERTYI(PropertyInfo(Variant::REAL, "boid_clumping"), "set_param", "get_param", PARAM_BOID_CLUMPING);
+
+        ADD_GROUP("Other", "");
+        ADD_PROPERTYI(PropertyInfo(Variant::REAL, "linear_drag"), "set_param", "get_param", PARAM_LINEAR_DRAG);
 }
