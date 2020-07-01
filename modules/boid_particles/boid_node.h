@@ -16,6 +16,13 @@ public:
     enum Parameter {
         PARAM_BOUNDARY_RANGE,
         PARAM_BOUNDARY_FORCE,
+
+        PARAM_BOID_DETECTION_RANGE,
+        PARAM_BOID_DETECTION_ANGLE,
+        PARAM_BOID_AVOIDING,
+        PARAM_BOID_ALIGNING,
+        PARAM_BOID_CLUMPING,
+
         PARAM_MAX,
     };
 
@@ -59,9 +66,8 @@ public:
 			p.transform = Transform2D();
 			p.time = 0;
             p.color = Color(1,1,1,1);
-            p.transform[2][0] = random.randf_range(50.0, 100.0);
-            p.transform[2][1] = random.randf_range(50.0, 100.0);
-
+            p.transform[2][0] = random.randf_range(540, 740);
+            p.transform[2][1] = random.randf_range(260, 460);
 
         }
 
@@ -83,19 +89,16 @@ public:
 
         for (int i = 0; i < n; i++) {
 
-            /* 
-            for (int j = 0; j < n; j++) {
-            }
-            */
+            auto &p_i = parray[i];
+            if (!p_i.active) continue;
 
-            auto &p = parray[i];
-
-            auto position = p.transform[2];
-            auto velocity = p.velocity;
-            auto sdf_idx = p_sdf->idx(position.x, position.y);
-
+            // put on stack for convinience
+            auto position = p_i.transform[2];
+            auto velocity = p_i.velocity;
             auto force = Vector2();
 
+            // boundary force & position update if colliding
+            auto sdf_idx = p_sdf->idx(position.x, position.y);
             auto sdf_value = p_sdf->values[sdf_idx];
             auto sdf_gradient = p_sdf->gradients[sdf_idx];
             if (sdf_value < 0.0) {
@@ -107,22 +110,40 @@ public:
                 force += delta * parameters[PARAM_BOUNDARY_FORCE] * factor * factor * p_sdf->gradients[sdf_idx];
             }
 
-            velocity += delta * force;
-            position += delta * p.velocity;
+            // boid forces
+            auto boid_position = p_i.transform[2]; // for clumping
+            auto boid_velocity = p_i.velocity; // for aligning
+            auto boid_normalization = 1.0; // to normalize the above
+            for (int j = 0; j < n; j++) {
 
-            auto vn = p.velocity.length();
+                auto &p_j = parray[j];
+                if (!p_j.active) continue;
 
-            if (vn > 0.0) {
-                p.transform.elements[1] = -p.velocity / (vn == 0 ? 1.0 : vn);
-                p.transform.elements[0] = p.transform.elements[1].tangent();
+
+
             }
 
-            p.custom[2] = fmod(p.time, 1.0/3.0) + 1.0/3.0;
+            // update with the calculated force
+            velocity += delta * force;
+            position += delta * velocity;
 
-            p.velocity = velocity;
-            p.transform[2] = position;
+            auto vn = velocity.length();
 
-            p.time += vn / 1000.0 * animation_speed;
+            // rotate the sprite to align with move direction
+            if (vn > 0.0) {
+                p_i.transform.elements[1] = -velocity / (vn == 0 ? 1.0 : vn);
+                p_i.transform.elements[0] = p_i.transform.elements[1].tangent();
+            }
+
+            // set animation phase
+            p_i.custom[2] = fmod(p_i.time, 1.0/3.0) + 1.0/3.0;
+
+            // write values
+            p_i.velocity = velocity;
+            p_i.transform[2] = position;
+
+            // advance time for animation
+            p_i.time += vn / 1000.0 * animation_speed;
 
         }
 
