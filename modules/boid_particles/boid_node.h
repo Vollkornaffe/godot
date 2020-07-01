@@ -5,23 +5,29 @@
 #include "passive_particles.h"
 #include "particle.h"
 #include "sdf.h"
+#include "core/variant.h"
+#include "core/type_info.h"
 
 class BoidNode : public Node2D {
     GDCLASS(BoidNode, Node2D);
 
-protected:
-    static void _bind_methods() {
-
-        ClassDB::bind_method(D_METHOD("init_particles"), &BoidNode::init_particles);
-        ClassDB::bind_method(D_METHOD("step"), &BoidNode::step);
-
-    }
-
 public:
 
     enum Parameter {
+        PARAM_BOUNDARY_RANGE,
+        PARAM_BOUNDARY_FORCE,
         PARAM_MAX,
     };
+
+
+protected:
+    static void _bind_methods();
+
+public:
+
+
+    void set_param(Parameter p_param, float p_value);
+    float get_param(Parameter p_param) const;
 
     void init_particles(Object * p_object) {
 
@@ -96,8 +102,9 @@ public:
                 auto p_delta = abs(sdf_value) * sdf_gradient;
                 position += p_delta;
                 velocity += p_delta / delta / 2.0;
-            } else if (sdf_value < 100.0) { // TODO make this a parameter
-                force += delta * abs(sdf_value) * p_sdf->gradients[sdf_idx];
+            } else if (sdf_value < parameters[PARAM_BOUNDARY_RANGE]) {
+                auto factor = (parameters[PARAM_BOUNDARY_RANGE] - sdf_value);
+                force += delta * parameters[PARAM_BOUNDARY_FORCE] * factor * factor * p_sdf->gradients[sdf_idx];
             }
 
             velocity += delta * force;
@@ -125,7 +132,9 @@ public:
 
 private:
     float t = 0.0;
-
+    float parameters[PARAM_MAX];
 };
+
+VARIANT_ENUM_CAST(BoidNode::Parameter)
 
 #endif //BOID_NODE_H

@@ -5,7 +5,8 @@ Import('env')
 sources = [
     "util.cpp",
     "register_types.cpp",
-    "passive_particles.cpp"
+    "passive_particles.cpp",
+    "boid_node.cpp"
 ]
 
 module_env = env.Clone()
