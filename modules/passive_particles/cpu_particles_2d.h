@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  cpu_particles_2d.h                                                   */
+/*  passive_particles_2d.h                                               */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,16 +28,16 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef CPU_PARTICLES_2D_H
-#define CPU_PARTICLES_2D_H
+#ifndef PASSIVE_PARTICLES_2D_H
+#define PASSIVE_PARTICLES_2D_H
 
 #include "core/rid.h"
 #include "scene/2d/node_2d.h"
 #include "scene/resources/texture.h"
 
-class CPUParticles2D : public Node2D {
+class PassiveParticles2D : public Node2D {
 private:
-	GDCLASS(CPUParticles2D, Node2D);
+	GDCLASS(PassiveParticles2D, Node2D);
 
 public:
 	enum DrawOrder {
@@ -289,13 +289,13 @@ public:
 
 	void convert_from_particles(Node *p_particles);
 
-	CPUParticles2D();
-	~CPUParticles2D();
+	PassiveParticles2D();
+	~PassiveParticles2D();
 };
 
-VARIANT_ENUM_CAST(CPUParticles2D::DrawOrder)
-VARIANT_ENUM_CAST(CPUParticles2D::Parameter)
-VARIANT_ENUM_CAST(CPUParticles2D::Flags)
-VARIANT_ENUM_CAST(CPUParticles2D::EmissionShape)
+VARIANT_ENUM_CAST(PassiveParticles2D::DrawOrder)
+VARIANT_ENUM_CAST(PassiveParticles2D::Parameter)
+VARIANT_ENUM_CAST(PassiveParticles2D::Flags)
+VARIANT_ENUM_CAST(PassiveParticles2D::EmissionShape)
 
-#endif // CPU_PARTICLES_2D_H
+#endif // PASSIVE_PARTICLES_2D_H
