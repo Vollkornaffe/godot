@@ -177,7 +177,8 @@ private:
 	Vector2 gravity;
 
 	void _update_internal();
-	void _particles_process(float p_delta);
+	// these particles are passive, they need to be updated from elsewhere
+	//void _particles_process(float p_delta);
 	void _update_particle_data_buffer();
 
 	Mutex *update_mutex;
@@ -291,6 +292,15 @@ public:
 
 	PassiveParticles2D();
 	~PassiveParticles2D();
+
+	// These are new, to access & update the particles
+	PoolVector<Particle>::Read get_particles_read() {
+		return particles.read();
+	}
+	PoolVector<Particle>::Write get_particles_write() {
+		return particles.write();
+	}
+
 };
 
 VARIANT_ENUM_CAST(PassiveParticles2D::DrawOrder)
