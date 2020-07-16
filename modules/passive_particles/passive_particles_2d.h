@@ -34,6 +34,7 @@
 #include "core/rid.h"
 #include "scene/2d/node_2d.h"
 #include "scene/resources/texture.h"
+#include "core/pool_vector.h"
 
 class PassiveParticles2D : public Node2D {
 private:
@@ -110,7 +111,7 @@ private:
 	RID mesh;
 	RID multimesh;
 
-	PoolVector<Particle> particles;
+	int amount;
 	PoolVector<float> particle_data;
 	PoolVector<int> particle_order;
 
@@ -293,14 +294,11 @@ public:
 	PassiveParticles2D();
 	~PassiveParticles2D();
 
-	// These are new, to access & update the particles
-	PoolVector<Particle>::Read get_particles_read() {
-		return particles.read();
-	}
-	PoolVector<Particle>::Write get_particles_write() {
-		return particles.write();
-	}
-
+	void write_data(
+		PoolRealArray states,
+		PoolVector2Array positions,
+		PoolVector2Array directions
+	);
 };
 
 VARIANT_ENUM_CAST(PassiveParticles2D::DrawOrder)

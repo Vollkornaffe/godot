@@ -49,16 +49,7 @@ void PassiveParticles2D::set_amount(int p_amount) {
 
 	ERR_FAIL_COND_MSG(p_amount < 1, "Amount of particles must be greater than 0.");
 
-	particles.resize(p_amount);
-	{
-		PoolVector<Particle>::Write w = particles.write();
-
-		// each particle must be set to false
-		// zeroing the data also prevents uninitialized memory being sent to GPU
-		zeromem(static_cast<void *>(&w[0]), p_amount * sizeof(Particle));
-		// cast to prevent compiler warning .. note this relies on Particle not containing any complex types.
-		// an alternative is to use some zero method per item but the generated code will be far less efficient.
-	}
+	amount = p_amount;
 
 	particle_data.resize((8 + 4 + 1) * p_amount);
 	VS::get_singleton()->multimesh_allocate(multimesh, p_amount, VS::MULTIMESH_TRANSFORM_2D, VS::MULTIMESH_COLOR_8BIT, VS::MULTIMESH_CUSTOM_DATA_FLOAT);
@@ -109,7 +100,7 @@ bool PassiveParticles2D::is_emitting() const {
 }
 int PassiveParticles2D::get_amount() const {
 
-	return particles.size();
+	return amount;
 }
 float PassiveParticles2D::get_lifetime() const {
 
@@ -290,15 +281,6 @@ void PassiveParticles2D::restart() {
 	frame_remainder = 0;
 	cycle = 0;
 	emitting = false;
-
-	{
-		int pc = particles.size();
-		PoolVector<Particle>::Write w = particles.write();
-
-		for (int i = 0; i < pc; i++) {
-			w[i].active = false;
-		}
-	}
 
 	set_emitting(true);
 }
@@ -560,77 +542,59 @@ static float rand_from_seed(uint32_t &seed) {
 }
 
 void PassiveParticles2D::_update_internal() {
-
-	if (particles.size() == 0 || !is_visible_in_tree()) {
+	if (amount == 0 || !is_visible_in_tree()) {
 		_set_redraw(false);
 		return;
 	}
 	_set_redraw(true);
-	_update_particle_data_buffer();
 }
 
-void PassiveParticles2D::_update_particle_data_buffer() {
+void PassiveParticles2D::write_data(
+	PoolRealArray states,
+	PoolVector2Array positions,
+	PoolVector2Array directions
+) {
 #ifndef NO_THREADS
 	update_mutex->lock();
 #endif
 
 	{
 
-		int pc = particles.size();
-
-		PoolVector<int>::Write ow;
-		int *order = NULL;
+		PoolVector<real_t>::Read read_states =((PoolVector<real_t>) states).read();
+		PoolVector<Vector2>::Read read_positions = ((PoolVector<Vector2>) positions).read();
+		PoolVector<Vector2>::Read read_directions = ((PoolVector<Vector2>) directions).read();
 
 		PoolVector<float>::Write w = particle_data.write();
-		PoolVector<Particle>::Read r = particles.read();
 		float *ptr = w.ptr();
 
-		if (draw_order != DRAW_ORDER_INDEX) {
-			ow = particle_order.write();
-			order = ow.ptr();
+		for (int i = 0; i < amount; i++) {
 
-			for (int i = 0; i < pc; i++) {
-				order[i] = i;
-			}
-			if (draw_order == DRAW_ORDER_LIFETIME) {
-				SortArray<int, SortLifetime> sorter;
-				sorter.compare.particles = r.ptr();
-				sorter.sort(order, pc);
-			}
-		}
+			auto s = read_states[i];
+			auto t_0 = parameters[PARAM_SCALE] * directions[i];
+			auto t_1 = parameters[PARAM_SCALE] * directions[i].tangent();
+			auto t_2 = positions[i];
 
-		for (int i = 0; i < pc; i++) {
+			if (s >= 0.0) {
 
-			int idx = order ? order[i] : i;
-
-			Transform2D t = r[idx].transform;
-
-			if (!local_coords) {
-				t = inv_emission_transform * t;
-			}
-
-			if (r[idx].active) {
-
-				ptr[0] = t.elements[0][0];
-				ptr[1] = t.elements[1][0];
+				ptr[0] = t_0[0];
+				ptr[1] = t_1[0];
 				ptr[2] = 0;
-				ptr[3] = t.elements[2][0];
-				ptr[4] = t.elements[0][1];
-				ptr[5] = t.elements[1][1];
+				ptr[3] = t_2[0];
+				ptr[4] = t_0[1];
+				ptr[5] = t_1[1];
 				ptr[6] = 0;
-				ptr[7] = t.elements[2][1];
+				ptr[7] = t_2[1];
 
-				Color c = r[idx].color;
 				uint8_t *data8 = (uint8_t *)&ptr[8];
-				data8[0] = CLAMP(c.r * 255.0, 0, 255);
-				data8[1] = CLAMP(c.g * 255.0, 0, 255);
-				data8[2] = CLAMP(c.b * 255.0, 0, 255);
-				data8[3] = CLAMP(c.a * 255.0, 0, 255);
+				data8[0] = 255;
+				data8[1] = 255;
+				data8[2] = 255;
+				data8[3] = 255;
 
-				ptr[9] = r[idx].custom[0];
-				ptr[10] = r[idx].custom[1];
-				ptr[11] = r[idx].custom[2];
-				ptr[12] = r[idx].custom[3];
+				ptr[9] = 0.0;
+				ptr[10] = 0.0;
+				ptr[11] = s;
+				ptr[12] = 0.0;
 
 			} else {
 				zeromem(ptr, sizeof(float) * 13);
@@ -719,41 +683,6 @@ void PassiveParticles2D::_notification(int p_what) {
 		_update_internal();
 	}
 
-	if (p_what == NOTIFICATION_TRANSFORM_CHANGED) {
-
-		inv_emission_transform = get_global_transform().affine_inverse();
-
-		if (!local_coords) {
-
-			int pc = particles.size();
-
-			PoolVector<float>::Write w = particle_data.write();
-			PoolVector<Particle>::Read r = particles.read();
-			float *ptr = w.ptr();
-
-			for (int i = 0; i < pc; i++) {
-
-				Transform2D t = inv_emission_transform * r[i].transform;
-
-				if (r[i].active) {
-
-					ptr[0] = t.elements[0][0];
-					ptr[1] = t.elements[1][0];
-					ptr[2] = 0;
-					ptr[3] = t.elements[2][0];
-					ptr[4] = t.elements[0][1];
-					ptr[5] = t.elements[1][1];
-					ptr[6] = 0;
-					ptr[7] = t.elements[2][1];
-
-				} else {
-					zeromem(ptr, sizeof(float) * 8);
-				}
-
-				ptr += 13;
-			}
-		}
-	}
 }
 
 void PassiveParticles2D::convert_from_particles(Node *p_particles) {
@@ -940,6 +869,8 @@ void PassiveParticles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_gravity", "accel_vec"), &PassiveParticles2D::set_gravity);
 
 	ClassDB::bind_method(D_METHOD("convert_from_particles", "particles"), &PassiveParticles2D::convert_from_particles);
+
+	ClassDB::bind_method(D_METHOD("write_data"), &PassiveParticles2D::write_data);
 
 	ClassDB::bind_method(D_METHOD("_update_render_thread"), &PassiveParticles2D::_update_render_thread);
 	ClassDB::bind_method(D_METHOD("_texture_changed"), &PassiveParticles2D::_texture_changed);
