@@ -295,7 +295,9 @@ public:
 	~PassiveParticles2D();
 
 	void write_data(
-		PoolRealArray states,
+		PoolIntArray actives,
+		PoolVector2Array custom_data_xy,
+		PoolVector2Array custom_data_zw,
 		PoolVector2Array positions,
 		PoolVector2Array directions
 	);

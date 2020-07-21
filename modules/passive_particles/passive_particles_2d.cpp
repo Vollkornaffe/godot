@@ -550,7 +550,9 @@ void PassiveParticles2D::_update_internal() {
 }
 
 void PassiveParticles2D::write_data(
-	PoolRealArray states,
+	PoolIntArray actives,
+	PoolVector2Array custom_data_xy,
+	PoolVector2Array custom_data_zw,
 	PoolVector2Array positions,
 	PoolVector2Array directions
 ) {
@@ -560,7 +562,9 @@ void PassiveParticles2D::write_data(
 
 	{
 
-		PoolVector<real_t>::Read read_states =((PoolVector<real_t>) states).read();
+		PoolVector<int>::Read read_actives = ((PoolVector<int>) actives).read();
+		PoolVector<Vector2>::Read read_custom_data_xy = ((PoolVector<Vector2>) custom_data_xy).read();
+		PoolVector<Vector2>::Read read_custom_data_zw = ((PoolVector<Vector2>) custom_data_zw).read();
 		PoolVector<Vector2>::Read read_positions = ((PoolVector<Vector2>) positions).read();
 		PoolVector<Vector2>::Read read_directions = ((PoolVector<Vector2>) directions).read();
 
@@ -569,32 +573,33 @@ void PassiveParticles2D::write_data(
 
 		for (int i = 0; i < amount; i++) {
 
-			auto s = read_states[i];
+			if (read_actives[i]) {
+
+			auto cd_xy = read_custom_data_xy[i];
+			auto cd_zw = read_custom_data_zw[i];
 			auto t_0 = parameters[PARAM_SCALE] * directions[i];
 			auto t_1 = parameters[PARAM_SCALE] * directions[i].tangent();
 			auto t_2 = positions[i];
 
-			if (s >= 0.0) {
+			ptr[0] = t_0[0];
+			ptr[1] = t_1[0];
+			ptr[2] = 0;
+			ptr[3] = t_2[0];
+			ptr[4] = t_0[1];
+			ptr[5] = t_1[1];
+			ptr[6] = 0;
+			ptr[7] = t_2[1];
 
-				ptr[0] = t_0[0];
-				ptr[1] = t_1[0];
-				ptr[2] = 0;
-				ptr[3] = t_2[0];
-				ptr[4] = t_0[1];
-				ptr[5] = t_1[1];
-				ptr[6] = 0;
-				ptr[7] = t_2[1];
+			uint8_t *data8 = (uint8_t *)&ptr[8];
+			data8[0] = 255;
+			data8[1] = 255;
+			data8[2] = 255;
+			data8[3] = 255;
 
-				uint8_t *data8 = (uint8_t *)&ptr[8];
-				data8[0] = 255;
-				data8[1] = 255;
-				data8[2] = 255;
-				data8[3] = 255;
-
-				ptr[9] = 0.0;
-				ptr[10] = 0.0;
-				ptr[11] = s;
-				ptr[12] = 0.0;
+			ptr[9] = cd_xy.x;
+			ptr[10] = cd_xy.y;
+			ptr[11] = cd_zw.x;
+			ptr[12] = cd_zw.y;
 
 			} else {
 				zeromem(ptr, sizeof(float) * 13);
